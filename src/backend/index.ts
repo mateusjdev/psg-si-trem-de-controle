@@ -36,7 +36,7 @@ export type {
 export type {
   GetConfiguracaoDto,
   UpdateConfiguracaoDto,
-} from "./src/services/servicoConfiguracoes";
+} from "./src/api/v1/configuracoes";
 
 export type { GetSessaoDto } from "./src/services/servicoAutenticacao";
 
