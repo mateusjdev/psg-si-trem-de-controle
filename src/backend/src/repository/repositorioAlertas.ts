@@ -146,8 +146,8 @@ class RepositorioAlertas extends RepositorioBase {
     return bancoDados.select({ count: count() }).from(tabelaAlertas).get();
   }
 
-  contarNaoMutados(): Promise<Count | undefined> {
-    return bancoDados
+  async contarNaoMutados(): Promise<number> {
+    const queryResult = await bancoDados
       .select({ count: count() })
       .from(tabelaAlertas)
       .where(
@@ -157,6 +157,7 @@ class RepositorioAlertas extends RepositorioBase {
         ),
       )
       .get();
+    return queryResult!.count;
   }
 }
 

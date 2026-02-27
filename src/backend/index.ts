@@ -1,10 +1,10 @@
 // ENUMs
 
+export { MotivoTransacoes } from "./src/db/enum/motivoTransacao";
 export { Identificador } from "./src/db/enums/identificador";
 export { MotivoAlerta } from "./src/db/enums/motivoAlerta";
 export { Permissoes } from "./src/db/enums/permissoes";
 export { StatusProduto } from "./src/db/enums/statusProduto";
-export { MotivoTransacoes } from "./src/db/enum/motivoTransacao";
 
 // DTOs
 
@@ -57,4 +57,4 @@ export type {
   GetAlertasDto,
   GetConsultaAlertasDto,
   ParamsConsultaAlertas,
-} from "./src/services/servicoAlertas";
+} from "./src/api/v1/alertas";
