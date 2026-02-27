@@ -9,9 +9,9 @@ import {
 import { ClientError, ServerError } from "../error";
 import { bufferTostring, z4Base64File } from "../helpers";
 import { error } from "../logging";
+import repositorioPermissoes from "../repository/repositorioPermissoes";
 import repositorioUsuarios from "../repository/repositorioUsuarios";
 import { hashSenha } from "../system/auth";
-import servicoPermissoes from "./servicoPermissoes";
 
 export const SetUsuarioDtoZ = z4.strictObject({
   nome: z4.string().min(1).max(32),
@@ -83,23 +83,26 @@ class ServicoUsuarios {
       hashedPassword: hashedPassword,
     });
     const res = await repositorioUsuarios.inserir(insertUsuario);
-    if (res[0]) {
-      const usuarioId = res[0].id;
-      if (opts?.cargos) {
-        const ok = await servicoPermissoes.adicionarPermissoesUsuario(
-          usuarioId,
-          ...opts.cargos,
-        );
-        if (!ok) {
-          error(
-            "Novo usuário criado, mas não foi possível configurar as permissões.",
-          );
-        }
-      }
-      return usuarioId;
-    } else {
+    if (!res[0]) {
       throw new ServerError("Não foi possível criar o usuário.");
     }
+
+    const usuarioId = res[0].id;
+    if (opts?.cargos) {
+      const valores = opts.cargos.map((c) => ({
+        usuarioId: usuarioId,
+        cargo: c,
+      }));
+      const atualizacoes = await repositorioPermissoes.inserir(...valores);
+      // TODO: Verificar se não houve atualizados devido ao usuário já possuir as permissões
+      if (atualizacoes <= 0) {
+        throw new ServerError(
+          "Novo usuário criado, mas não foi possível configurar as permissões.",
+        );
+      }
+    }
+
+    return usuarioId;
   }
 
   /** Listar seleciona apenas as informações públicas */
