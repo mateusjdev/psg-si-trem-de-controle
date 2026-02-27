@@ -7,7 +7,7 @@ import {
   type UpdateUnidadesMedidaSchema,
   tabelaUnidadesMedida,
 } from "../db/schema/unidadesMedida";
-import type { Count, RefRegistro } from "./common";
+import type { RefRegistro } from "./common";
 
 class RepositorioUnidadesMedida {
   inserir(
@@ -99,11 +99,12 @@ class RepositorioUnidadesMedida {
     });
   }
 
-  contar(): Promise<Count | undefined> {
-    return bancoDados
+  async contar(): Promise<number> {
+    const query = await bancoDados
       .select({ count: count() })
       .from(tabelaUnidadesMedida)
       .get();
+    return query!.count;
   }
 }
 

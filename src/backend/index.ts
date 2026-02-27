@@ -20,10 +20,7 @@ export type {
   SetCategoriaDTO,
 } from "./src/services/servicoCategorias";
 
-export type {
-  GetUnidadeDto,
-  SetUnidadeDTO,
-} from "./src/services/servicoUnidadesMedida";
+export type { GetUnidadeDto, SetUnidadeDTO } from "./src/api/v1/unidadesMedida";
 
 export type {
   GetUsuarioDto,
