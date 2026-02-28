@@ -139,14 +139,6 @@ class RepositorioProdutos extends RepositorioBase {
       .execute();
   }
 
-  selecionarPorCategoriaId(id: string): Promise<Count | undefined> {
-    return bancoDados
-      .select({ count: count() })
-      .from(tabelaProdutos)
-      .where(eq(tabelaProdutos.categoriaId, id))
-      .get();
-  }
-
   selecionarPorUnidadeMedida(id: string): Promise<Count | undefined> {
     return bancoDados
       .select({ count: count() })
@@ -341,6 +333,15 @@ class RepositorioProdutos extends RepositorioBase {
         .execute();
       return resultSet.rowsAffected;
     });
+  }
+
+  async contarPorCategoriaId(id: string): Promise<number> {
+    const query = await bancoDados
+      .select({ count: count() })
+      .from(tabelaProdutos)
+      .where(eq(tabelaProdutos.categoriaId, id))
+      .get();
+    return query!.count;
   }
 
   contar(): Promise<Count | undefined> {

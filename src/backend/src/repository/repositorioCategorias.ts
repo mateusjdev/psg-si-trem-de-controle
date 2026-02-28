@@ -5,7 +5,7 @@ import {
   type SelectCategoriaSchema,
   tabelaCategorias,
 } from "../db/schema/categorias";
-import type { Count, RefRegistro } from "./common";
+import type { RefRegistro } from "./common";
 
 class RepositorioCategorias {
   inserir(...categoria: InsertCategoriaSchema[]): Promise<RefRegistro[]> {
@@ -78,8 +78,12 @@ class RepositorioCategorias {
     });
   }
 
-  contar(): Promise<Count | undefined> {
-    return bancoDados.select({ count: count() }).from(tabelaCategorias).get();
+  async contar(): Promise<number> {
+    const query = await bancoDados
+      .select({ count: count() })
+      .from(tabelaCategorias)
+      .get();
+    return query!.count;
   }
 }
 

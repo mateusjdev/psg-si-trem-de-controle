@@ -15,7 +15,6 @@ import repositorioMovimentacoes from "../repository/repositorioTransacoes";
 import repositorioUnidadesMedida from "../repository/repositorioUnidadesMedida";
 import repositorioUsuarios from "../repository/repositorioUsuarios";
 import { hashSenha } from "../system/auth";
-import servicoCategorias from "./servicoCategorias";
 import servicoLotes from "./servicoLotes";
 import servicoProdutos from "./servicoProdutos";
 import servicoUsuarios from "./servicoUsuarios";
@@ -156,7 +155,7 @@ async function escolherCategorias(
   canRecurse: boolean,
   quant: number,
 ): Promise<{ id: string }[]> {
-  let quantCategorias = await servicoCategorias.contar();
+  let quantCategorias = await repositorioCategorias.contar();
   if (quantCategorias === 0) {
     if (canRecurse) {
       await servicoFaker.criarCategorias(quant);
@@ -164,11 +163,17 @@ async function escolherCategorias(
       throw new HttpError("No relational data found", 400);
     }
   }
-  quantCategorias = await servicoCategorias.contar();
+  quantCategorias = await repositorioCategorias.contar();
   if (quantCategorias === 0) {
     throw new HttpError("Can't create relational data", 400);
   }
-  const categorias = await servicoCategorias.selecionarTodos();
+
+  const registros = await repositorioCategorias.selecionarTodos();
+  const categorias = registros.map((registro) => ({
+    id: registro.id,
+    nome: registro.nome,
+  }));
+
   if (!categorias || categorias.length === 0) {
     throw new HttpError("Can't retrieve relational data", 400);
   }

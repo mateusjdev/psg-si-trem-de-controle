@@ -15,10 +15,7 @@ export type {
   UpdateLoteDTO,
 } from "./src/services/servicoLotes";
 
-export type {
-  GetCategoriaDTO,
-  SetCategoriaDTO,
-} from "./src/services/servicoCategorias";
+export type { GetCategoriaDTO, SetCategoriaDTO } from "./src/api/v1/categorias";
 
 export type { GetUnidadeDto, SetUnidadeDTO } from "./src/api/v1/unidadesMedida";
 
