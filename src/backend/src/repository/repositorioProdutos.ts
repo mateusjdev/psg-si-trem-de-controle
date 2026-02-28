@@ -344,8 +344,12 @@ class RepositorioProdutos extends RepositorioBase {
     return query!.count;
   }
 
-  contar(): Promise<Count | undefined> {
-    return bancoDados.select({ count: count() }).from(tabelaProdutos).get();
+  async contar(): Promise<number> {
+    const query = await bancoDados
+      .select({ count: count() })
+      .from(tabelaProdutos)
+      .get();
+    return query!.count;
   }
 }
 

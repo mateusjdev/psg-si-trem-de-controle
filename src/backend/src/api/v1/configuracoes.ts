@@ -1,11 +1,12 @@
 import { type NextFunction, type Response, Router } from "express";
 import z4 from "zod/v4";
 import { Identificador } from "../../db/enums/identificador";
+import { configurarGerador, geradorCodigo } from "../../db/geradorCodigos";
 import { error } from "../../logging";
 import type { ExtendedRequest } from "../../middlewares";
 import { mdwRequerBody } from "../../middlewares";
 import repositorioConfiguracoes from "../../repository/repositorioConfiguracoes";
-import servicoProdutos from "../../services/servicoProdutos";
+import repositorioProdutos from "../../repository/repositorioProdutos";
 
 // Por enquanto haverá apenas 1 configuração padrão
 const defaultUuid = "00000000-0000-0000-0000-000000000000";
@@ -99,6 +100,8 @@ async function patchConfiguracoes(
   }
 }
 
+// TODO: Otimizar
+// TODO: Retornar alguma coisa indicando erro/sucesso
 async function alterarIdentificador(
   req: ExtendedRequest,
   res: Response,
@@ -110,8 +113,31 @@ async function alterarIdentificador(
         identificador: z4.enum(Identificador),
       })
       .parse(req.body);
-    // TODO: Retornar alguma coisa indicando erro/sucesso
-    await servicoProdutos.alterarFormatoCodigo(parsedBody.identificador);
+
+    const { identificador } = parsedBody;
+
+    // TODO: Verificar se o código é o mesmo.
+    configurarGerador(identificador);
+    const produtoCount = await repositorioProdutos.contar();
+    if (produtoCount > 0) {
+      const idList = await repositorioProdutos.selecionarIdsTodos();
+      const novosIds = idList.map((u) => {
+        return {
+          id: u.id,
+          novoCodigo: geradorCodigo(),
+        };
+      });
+
+      await repositorioProdutos.utilizarTransacao(async (tx) => {
+        const atualizacoes = novosIds.map((registro) => {
+          return repositorioProdutos.atualizarPorIdTransacao(tx, registro.id, {
+            codigo: registro.novoCodigo,
+          });
+        });
+        return await Promise.all(atualizacoes);
+      });
+    }
+
     res.sendStatus(200);
   } catch (err) {
     next(err);

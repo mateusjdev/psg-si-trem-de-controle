@@ -39,7 +39,7 @@ export type {
   GetProdutoDto,
   ParamsConsultaProdutos,
   SetProdutoDto,
-} from "./src/services/servicoProdutos";
+} from "./src/api/v1/produtos";
 
 export type {
   ConsultaMovimentacoesParams,

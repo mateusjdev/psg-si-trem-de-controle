@@ -16,7 +16,6 @@ import repositorioUnidadesMedida from "../repository/repositorioUnidadesMedida";
 import repositorioUsuarios from "../repository/repositorioUsuarios";
 import { hashSenha } from "../system/auth";
 import servicoLotes from "./servicoLotes";
-import servicoProdutos from "./servicoProdutos";
 import servicoUsuarios from "./servicoUsuarios";
 
 function fakerLocal(): string {
@@ -86,7 +85,7 @@ async function escolherProdutos(
   canRecurse: boolean,
   quant: number,
 ): Promise<string[]> {
-  let quantProdutos = await servicoProdutos.contar();
+  let quantProdutos = await repositorioProdutos.contar();
   if (quantProdutos === 0) {
     if (canRecurse) {
       await servicoFaker.criarProdutos(quant, canRecurse);
@@ -94,11 +93,14 @@ async function escolherProdutos(
       throw new HttpError("No relational data found", 400);
     }
   }
-  quantProdutos = await servicoProdutos.contar();
+  quantProdutos = await repositorioProdutos.contar();
   if (quantProdutos === 0) {
     throw new HttpError("Can't create relational data", 400);
   }
-  const produtosId = await servicoProdutos.listarIds();
+
+  const registros = await repositorioProdutos.selecionarIdsTodos();
+  const produtosId = registros.map((registro) => registro.id);
+
   if (!produtosId || produtosId.length === 0) {
     throw new HttpError("Can't retrieve relational data", 400);
   }
