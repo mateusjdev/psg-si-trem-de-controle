@@ -7,7 +7,7 @@ import type {
   UpdateLoteSchema,
 } from "../db/schema/lotes";
 import { tabelaLotes } from "../db/schema/lotes";
-import type { Count, RefRegistro } from "./common";
+import type { RefRegistro } from "./common";
 
 export type RepoConsultaParamsLote = {
   pagina?: number;
@@ -153,8 +153,12 @@ class RepositorioLotes {
     });
   }
 
-  contar(): Promise<Count | undefined> {
-    return bancoDados.select({ count: count() }).from(tabelaLotes).get();
+  async contar(): Promise<number> {
+    const query = await bancoDados
+      .select({ count: count() })
+      .from(tabelaLotes)
+      .get();
+    return query!.count;
   }
 }
 

@@ -13,7 +13,7 @@ export type {
   GetLoteDTO,
   SetLoteDTO,
   UpdateLoteDTO,
-} from "./src/services/servicoLotes";
+} from "./src/api/v1/lotes";
 
 export type { GetCategoriaDTO, SetCategoriaDTO } from "./src/api/v1/categorias";
 

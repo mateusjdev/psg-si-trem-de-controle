@@ -15,7 +15,6 @@ import repositorioMovimentacoes from "../repository/repositorioTransacoes";
 import repositorioUnidadesMedida from "../repository/repositorioUnidadesMedida";
 import repositorioUsuarios from "../repository/repositorioUsuarios";
 import { hashSenha } from "../system/auth";
-import servicoLotes from "./servicoLotes";
 import servicoUsuarios from "./servicoUsuarios";
 
 function fakerLocal(): string {
@@ -134,7 +133,7 @@ async function escolherLotes(
   canRecurse: boolean,
   quant: number,
 ): Promise<{ id: string; produtoId: string }[]> {
-  let quantLotes = await servicoLotes.contar();
+  let quantLotes = await repositorioLotes.contar();
   if (quantLotes === 0) {
     if (canRecurse) {
       await servicoFaker.criarLotes(quant, canRecurse);
@@ -142,7 +141,7 @@ async function escolherLotes(
       throw new HttpError("No relational data found", 400);
     }
   }
-  quantLotes = await servicoLotes.contar();
+  quantLotes = await repositorioLotes.contar();
   if (quantLotes === 0) {
     throw new HttpError("Can't create relational data", 400);
   }
