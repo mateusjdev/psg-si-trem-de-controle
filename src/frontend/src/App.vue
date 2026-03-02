@@ -8,7 +8,12 @@ import { useTemaStore } from './store/config/tema'
 const tema = useTemaStore()
 const route = useRoute()
 const mostrarMenu = computed(
-  () => route.name !== 'login' && route.name !== 'loading' && route.name !== '404',
+  // TODO: utilizar RouterMeta para definir quais rotas devem mostrar o menu
+  () =>
+    route.name !== 'login' &&
+    route.name !== 'loading' &&
+    route.name !== '404' &&
+    route.path !== '/',
 )
 const dataTema = computed(() =>
   mostrarMenu.value ? (tema.isDarkModePreferred ? 'dark' : 'light') : '',
