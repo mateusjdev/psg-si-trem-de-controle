@@ -4,7 +4,7 @@ import {
   type Response,
   Router,
 } from "express";
-import servicoAutenticacao from "../../services/servicoAutenticacao";
+import repositorioSessoes from "../../repository/repositorioSessoes";
 import apiV1AdminUsuarios from "./admin/usuarios";
 
 const apiV1AdminRouter = Router();
@@ -17,12 +17,8 @@ apiV1AdminRouter.post(
   "/invalidar-sessoes",
   async (_: Request, res: Response, next: NextFunction) => {
     try {
-      const ok = await servicoAutenticacao.invalidarSessoes();
-      if (ok) {
-        res.sendStatus(200);
-      } else {
-        res.sendStatus(500);
-      }
+      await repositorioSessoes.excluirTodos();
+      res.sendStatus(200);
     } catch (err) {
       next(err);
     }

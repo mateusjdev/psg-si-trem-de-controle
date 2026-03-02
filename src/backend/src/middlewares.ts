@@ -1,12 +1,20 @@
 import type { NextFunction, Request, Response } from "express";
 import { customAlphabet } from "nanoid";
-import { COOKIE_SESSION_TOKEN } from "./auth";
+import { COOKIE_SESSION_TOKEN, type GetSessaoDto } from "./auth";
 import { alfabetoHexadecimal } from "./db/enums/identificador";
 import { Permissoes } from "./db/enums/permissoes";
+import { ClientError } from "./error";
+import { bufferTostring } from "./helpers";
 import { error, warning } from "./logging";
-import servicoAutenticacao, {
-  type GetSessaoDto,
-} from "./services/servicoAutenticacao";
+import repositorioPermissoes from "./repository/repositorioPermissoes";
+import repositorioSessoes from "./repository/repositorioSessoes";
+import repositorioUsuarios from "./repository/repositorioUsuarios";
+import {
+  constantTimeEqual,
+  hashSecret,
+  parseToken,
+  SESSION_EXPIRES_IN_MSECONDS,
+} from "./system/auth";
 
 export type Cookies = {
   tokenSessao?: string;
@@ -58,7 +66,8 @@ export function mdwLoadSessionCookies(
 
 // TODO: Limpar cookies?
 // TODO: Criar HttpError401
-// TODO: Utilizar consultarSessao e mover toda a lógica par ao serviço
+// TODO: Check for timing attacks
+// TODO: Unificar queries
 export async function mdwAutenticacao(
   req: ExtendedRequest,
   res: Response,
@@ -79,9 +88,67 @@ export async function mdwAutenticacao(
       res.sendStatus(401);
       return;
     }
-    const usuarioSessao = await servicoAutenticacao.consultarSessaoPorToken(
-      req._cookies?.tokenSessao,
+
+    // consultarSessaoPorToken
+
+    // 1. Verificar o token (id, segredo)
+    const token = req._cookies?.tokenSessao;
+    const _token = parseToken(token);
+    if (!_token) {
+      throw new ClientError("Unauthorized", 401);
+    }
+    const tokenId = _token.id;
+    const tokenSecret = _token.secret;
+    // 2. Verificar se há uma sessão na base de dados com o id do cookie
+    const sessao = await repositorioSessoes.selecionarPorId(tokenId);
+    if (!sessao) {
+      error("Sessão não encontrada.", { label: "AuthServ" });
+      throw new ClientError("Unauthorized", 401);
+    }
+    const now = new Date();
+    // 3. Verificar se a sessão não esta expirada
+    if (
+      now.getTime() - sessao.createdAt.getTime() >=
+      SESSION_EXPIRES_IN_MSECONDS
+    ) {
+      warning(`Sessão expirada: ${tokenId}`, { label: "AuthServ" });
+      await repositorioSessoes.excluirPorId(tokenId);
+      throw new ClientError("Unauthorized", 401);
+    }
+    // 4. Verificar se o segredo da sessão confere
+    const tokenSecretHash = await hashSecret(tokenSecret);
+    // Node.js only
+    // crypto.timingSafeEqual(tokenSecretHash, sessao.secretHash)
+    const isValidSession = constantTimeEqual(
+      tokenSecretHash,
+      sessao.secretHash,
     );
+    if (!isValidSession) {
+      warning("Sessão inválida", { label: "Session" });
+      throw new ClientError("Unauthorized", 401);
+    }
+    // 5. (sessão valida) Retornar dados do usuário
+    const usuario = await repositorioUsuarios.selecionarPorId(sessao.usuarioId);
+    if (!usuario) {
+      error("Usuário não encontrado.", { label: "AuthServ" });
+      throw new ClientError("Unauthorized", 401);
+    }
+    const registros = await repositorioPermissoes.selecionarPorIdUsuario(
+      usuario.id,
+    );
+    const perms = registros.map((registro) => registro.cargo);
+    const usuarioSessao = {
+      id: usuario.id,
+      nome: usuario.nome,
+      login: usuario.login,
+      modoEscuro: usuario.modoEscuro,
+      // as string,
+      foto: usuario.foto ? bufferTostring(usuario.foto as Uint8Array) : null,
+      permissoes: perms,
+    };
+
+    // consultarSessaoPorToken
+
     if (!usuarioSessao) {
       warning("Sessão inválida", {
         label: "Session",

@@ -4,6 +4,8 @@ import { hash } from "bcrypt";
 
 const bcryptRounds = process.env.BCRYPT_ROUNDS || "10";
 const rounds = parseInt(bcryptRounds, 10);
+export const ONE_DAY = 60 * 60 * 24 * 1000;
+export const SESSION_EXPIRES_IN_MSECONDS = ONE_DAY;
 
 export function hashSenha(senha: string): Promise<string> {
   return hash(senha, rounds);
@@ -41,4 +43,23 @@ export function constantTimeEqual(a: Uint8Array, b: Uint8Array): boolean {
     c |= a[i]! ^ b[i]!;
   }
   return c === 0;
+}
+
+// Serviço Autenticação
+
+type Token = {
+  id: string;
+  secret: string;
+};
+
+export function parseToken(token: string): Token | null {
+  const [id, secret, ...extra] = token.split(".");
+  if (!id || !secret || extra.length > 0) {
+    // TODO: Lançar excessão? Invalidar sessão?
+    return null;
+  }
+  return {
+    id: id,
+    secret: secret,
+  };
 }
