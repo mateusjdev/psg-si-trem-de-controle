@@ -48,7 +48,7 @@ export type {
   ConsultaMovimentacoesParams,
   GetConsultaMovimentacaoDto,
   GetMovimentacaoDto,
-} from "./src/services/servicoTransacoes";
+} from "./src/api/v1/transacoes";
 
 export type {
   GetAlertasDto,
