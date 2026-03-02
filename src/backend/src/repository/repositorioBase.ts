@@ -11,9 +11,9 @@ export type SQLiteTransactionCustom = SQLiteTransaction<
 >;
 
 export class RepositorioBase {
-  utilizarTransacao(
-    callback: (tx: SQLiteTransactionCustom) => Promise<unknown>,
-  ): Promise<unknown> {
+  utilizarTransacao<T>(
+    callback: (tx: SQLiteTransactionCustom) => Promise<T>,
+  ): Promise<T> {
     return bancoDados.transaction(callback);
   }
 }

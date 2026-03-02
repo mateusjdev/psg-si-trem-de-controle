@@ -6,7 +6,10 @@ import {
   type SelectPermissoesSchema,
   tabelaPermissoes,
 } from "../db/schema/permissoes";
-import { RepositorioBase } from "./repositorioBase";
+import {
+  RepositorioBase,
+  type SQLiteTransactionCustom,
+} from "./repositorioBase";
 
 class RepositorioPermissoes extends RepositorioBase {
   inserir(...perms: InsertPermissoesSchema[]): Promise<number> {
@@ -18,6 +21,18 @@ class RepositorioPermissoes extends RepositorioBase {
         .execute();
       return res.rowsAffected;
     });
+  }
+
+  async inserirTx(
+    tx: SQLiteTransactionCustom,
+    ...perms: InsertPermissoesSchema[]
+  ): Promise<number> {
+    const res = await tx
+      .insert(tabelaPermissoes)
+      .values(perms)
+      .onConflictDoNothing()
+      .execute();
+    return res.rowsAffected;
   }
 
   selecionarTodos(): Promise<SelectPermissoesSchema[]> {

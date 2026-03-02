@@ -20,12 +20,15 @@ export type { GetCategoriaDTO, SetCategoriaDTO } from "./src/api/v1/categorias";
 export type { GetUnidadeDto, SetUnidadeDTO } from "./src/api/v1/unidadesMedida";
 
 export type {
-  GetUsuarioDto,
-  GetUsuarioSimplesDto as GetUsuarioSimplesDTO,
-  SetPerfilDto,
+  GetPerfilPessoalDto as GetUsuarioDto,
+  GetPerfilDto as GetUsuarioSimplesDTO,
+  SetPerfilPessoalDto as SetPerfilDto,
+} from "./src/api/v1/perfil";
+
+export type {
   SetUsuarioDto,
   UpdateUsuarioDto,
-} from "./src/services/servicoUsuarios";
+} from "./src/api/v1/admin/usuarios";
 
 export type {
   GetConfiguracaoDto,

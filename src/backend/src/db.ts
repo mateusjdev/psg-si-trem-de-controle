@@ -11,7 +11,10 @@ import { tabelaTransacoes } from "./db/schema/transacoes";
 import { tabelaUnidadesMedida } from "./db/schema/unidadesMedida";
 import { tabelaUsuarios } from "./db/schema/usuarios";
 import { LogLevel, error, json, notice, warning } from "./logging";
-import servicoUsuarios from "./services/servicoUsuarios";
+import repositorioBase from "./repository/repositorioBase";
+import repositorioPermissoes from "./repository/repositorioPermissoes";
+import repositorioUsuarios from "./repository/repositorioUsuarios";
+import { hashSenha } from "./system/auth";
 
 const DB_FILE_NAME = process.env.DB_FILE_NAME || "file:database.db";
 const bancoDados = drizzle(DB_FILE_NAME);
@@ -58,37 +61,58 @@ export async function verificarBancoDados(): Promise<boolean> {
 // Verifica se há usuários cadastrados no sistema, se não houver, inicializa um administrador
 // TODO: Inicializar apenas 1 vez, armazenar informação em configurações.
 export async function inicializarAdministrador(): Promise<void> {
-  const count = await servicoUsuarios.contar();
+  const count = await repositorioUsuarios.contar();
   if (count === 0) {
-    // TODO: Gerar senha aleatoria
-    const admin = { login: "Administrador", senha: "Admin123-" };
-    await servicoUsuarios.inserir(
-      {
-        nome: admin.login,
-        login: admin.login,
-        senha: admin.senha,
-        password: admin.senha,
-        descricao: admin.login,
-        habilitado: true,
-      },
-      { cargos: [Permissoes.Administrador] },
+    warning(
+      "Nenhum usuário foi encontrado. Criando usuário administrador e desenvolvedor.",
     );
-    warning("Nenhum usuário foi encontrado. Credênciais de primeira entrada:");
-    json({ login: admin.login, senha: admin.senha }, LogLevel.Warning);
 
-    const dev = { login: "Desenvolvedor", senha: "Devel321-" };
-    await servicoUsuarios.inserir(
-      {
-        nome: dev.login,
-        login: dev.login,
-        senha: dev.senha,
-        password: dev.senha,
-        descricao: dev.login,
-        habilitado: true,
-      },
-      { cargos: [Permissoes.Desenvolvedor] },
-    );
-    json({ login: dev.login, senha: dev.senha }, LogLevel.Warning);
+    // TODO: Gerar senha aleatoria
+    const adminLogin = "Administrador";
+    const adminSenha = "Admin123-";
+    const devLogin = "Desenvolvedor";
+    const devSenha = "Devel321-";
+
+    await repositorioBase.utilizarTransacao(async (tx) => {
+      try {
+        const reg1 = await repositorioUsuarios.inserir({
+          nome: adminLogin,
+          login: adminLogin,
+          hashedPassword: await hashSenha(adminSenha),
+          descricao: adminLogin,
+          habilitado: true,
+        });
+        if (!reg1[0]) {
+          throw new Error("Não foi possível criar usuário administrador.");
+        }
+        await repositorioPermissoes.inserir({
+          usuarioId: reg1[0].id,
+          cargo: Permissoes.Administrador,
+        });
+
+        const reg2 = await repositorioUsuarios.inserir({
+          nome: devLogin,
+          login: devLogin,
+          hashedPassword: await hashSenha(devSenha),
+          descricao: devLogin,
+          habilitado: true,
+        });
+        if (!reg2[0]) {
+          throw new Error("Não foi possível criar usuário desenvolvedor.");
+        }
+        await repositorioPermissoes.inserir({
+          usuarioId: reg2[0].id,
+          cargo: Permissoes.Desenvolvedor,
+        });
+      } catch (err) {
+        tx.rollback();
+        throw err;
+      }
+    });
+
+    warning("Credênciais de primeira entrada:");
+    json({ login: adminLogin, senha: adminSenha }, LogLevel.Warning);
+    json({ login: devLogin, senha: devSenha }, LogLevel.Warning);
   }
 }
 

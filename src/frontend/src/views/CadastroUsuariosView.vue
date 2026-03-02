@@ -229,16 +229,14 @@ async function confirmar() {
       nome: usuarioNome.value,
       descricao: usuarioDescricao.value,
       senha: credenciais.data.senha,
-      password: credenciais.data.senha,
-      foto: usuarioFoto.value || null,
+      foto: usuarioFoto.value || undefined,
+      modoEscuro: false,
+      permissoes: [permissoes.value],
     })
     if (!res.ok || !res.responseBody) return
-    const res2 = await apiPermissoes.definir(res.responseBody, [permissoes.value])
-    if (res2.ok) {
-      notificacoes.addNotification('Usuário e permissões configurados com sucesso.')
-      limparCampos()
-      obterUsuarios()
-    }
+    notificacoes.addNotification('Usuário e permissões configurados com sucesso.')
+    limparCampos()
+    obterUsuarios()
   } else {
     const credenciais = CrecenciaisZ.safeParse({
       usuario: usuarioLogin.value,

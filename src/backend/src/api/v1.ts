@@ -7,16 +7,16 @@ import apiV1Categorias from "./v1/categorias";
 import apiV1Configuracoes from "./v1/configuracoes";
 import apiV1Dev from "./v1/dev";
 import apiV1Lotes from "./v1/lotes";
+import apiV1Perfil from "./v1/perfil";
 import apiV1Permissoes from "./v1/permissoes";
 import apiV1Produtos from "./v1/produtos";
 import apiV1Transacoes from "./v1/transacoes";
 import apiV1UnidadesMedida from "./v1/unidadesMedida";
-import apiV1Usuarios from "./v1/usuarios";
 
 const apiV1Router = Router();
 
 // {host}/api/v1/usuarios
-apiV1Router.use("/usuarios", apiV1Usuarios);
+apiV1Router.use("/perfil", apiV1Perfil);
 
 // {host}/api/v1/lotes
 apiV1Router.use("/lotes", apiV1Lotes);

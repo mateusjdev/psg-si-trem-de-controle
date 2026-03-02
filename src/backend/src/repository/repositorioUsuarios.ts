@@ -6,7 +6,11 @@ import type {
   UpdateUsuarioSchema,
 } from "../db/schema/usuarios";
 import { tabelaUsuarios } from "../db/schema/usuarios";
-import type { Count, RefRegistro } from "./common";
+import type { RefRegistro } from "./common";
+import {
+  RepositorioBase,
+  type SQLiteTransactionCustom,
+} from "./repositorioBase";
 
 export type RepoConsultaParamsUsuarios = {
   pagina?: number;
@@ -15,7 +19,7 @@ export type RepoConsultaParamsUsuarios = {
   comLogin?: string;
 };
 
-class RepositorioUsuarios {
+class RepositorioUsuarios extends RepositorioBase {
   inserir(...usuario: InsertUsuarioSchema[]): Promise<RefRegistro[]> {
     return bancoDados.transaction((tx) => {
       return tx
@@ -26,6 +30,19 @@ class RepositorioUsuarios {
         })
         .execute();
     });
+  }
+
+  inserirTx(
+    tx: SQLiteTransactionCustom,
+    ...usuario: InsertUsuarioSchema[]
+  ): Promise<RefRegistro[]> {
+    return tx
+      .insert(tabelaUsuarios)
+      .values(usuario)
+      .returning({
+        id: tabelaUsuarios.id,
+      })
+      .execute();
   }
 
   selecionarPorId(id: string): Promise<SelectUsuarioSchema | undefined> {
@@ -115,8 +132,12 @@ class RepositorioUsuarios {
     });
   }
 
-  contar(): Promise<Count | undefined> {
-    return bancoDados.select({ count: count() }).from(tabelaUsuarios).get();
+  async contar(): Promise<number> {
+    const query = await bancoDados
+      .select({ count: count() })
+      .from(tabelaUsuarios)
+      .get();
+    return query!.count;
   }
 }
 

@@ -2,7 +2,7 @@ import type { SetPerfilDto } from '../../../backend'
 import { UuidParseZ } from './common'
 import { HttpMethods, fetchW } from './fetchWrapper'
 
-const endpoint_path = `/api/v1/usuarios`
+const endpoint_path = `/api/v1/perfil`
 
 export class ApiPerfil {
   obterPorId(id: string) {
@@ -14,17 +14,6 @@ export class ApiPerfil {
     return fetchW(`${endpoint_path}`, {
       method: HttpMethods.Patch,
       body: opts,
-    })
-  }
-
-  // TODO: Unificar funções e utilizar opts
-  alterarLoginNome(login?: string, nome?: string) {
-    return fetchW(`${endpoint_path}`, {
-      method: HttpMethods.Patch,
-      body: {
-        login,
-        nome,
-      },
     })
   }
 

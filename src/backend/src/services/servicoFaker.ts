@@ -15,7 +15,6 @@ import repositorioMovimentacoes from "../repository/repositorioTransacoes";
 import repositorioUnidadesMedida from "../repository/repositorioUnidadesMedida";
 import repositorioUsuarios from "../repository/repositorioUsuarios";
 import { hashSenha } from "../system/auth";
-import servicoUsuarios from "./servicoUsuarios";
 
 function fakerLocal(): string {
   return `Andar ${faker.number.int({ min: 1, max: 10 })}`;
@@ -110,7 +109,7 @@ async function escolherUsuarios(
   canRecurse: boolean,
   quant: number,
 ): Promise<string[]> {
-  let quantUsuarios = await servicoUsuarios.contar();
+  let quantUsuarios = await repositorioUsuarios.contar();
   if (quantUsuarios === 0) {
     if (canRecurse) {
       await servicoFaker.criarUsuarios(quant);
@@ -118,15 +117,17 @@ async function escolherUsuarios(
       throw new HttpError("No relational data found", 400);
     }
   }
-  quantUsuarios = await servicoUsuarios.contar();
+  quantUsuarios = await repositorioUsuarios.contar();
   if (quantUsuarios === 0) {
     throw new HttpError("Can't create relational data", 400);
   }
-  const usuariosId = await servicoUsuarios.listarIds();
-  if (!usuariosId || usuariosId.length === 0) {
+  const registros = await repositorioUsuarios.selecionarIdsTodos();
+  const usuariosIds = registros.map((registro) => registro.id);
+
+  if (!usuariosIds || usuariosIds.length === 0) {
     throw new HttpError("Can't retrieve relational data", 400);
   }
-  return escolherAleatorios(quant, usuariosId);
+  return escolherAleatorios(quant, usuariosIds);
 }
 
 async function escolherLotes(
