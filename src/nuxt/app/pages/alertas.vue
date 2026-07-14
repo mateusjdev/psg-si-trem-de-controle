@@ -14,11 +14,18 @@
     <!-- FILTRO POR MOTIVO -->
     <div class="flex items-center gap-4">
       <label class="text-base-content font-medium">Filtrar por motivo:</label>
-      <select v-model="filtroMotivo" @change="obterAlertas" class="rounded border px-3 py-1">
+      <select
+        v-model="filtroMotivo"
+        @change="obterAlertas"
+        class="rounded border px-3 py-1">
         <option :value="null">Todos</option>
         <option :value="MotivoAlerta.Validade">Perto da validade</option>
-        <option :value="MotivoAlerta.QuantidadeMaxima">Estoque acima do máximo</option>
-        <option :value="MotivoAlerta.QuantidadeMinima">Estoque abaixo do mínimo</option>
+        <option :value="MotivoAlerta.QuantidadeMaxima">
+          Estoque acima do máximo
+        </option>
+        <option :value="MotivoAlerta.QuantidadeMinima">
+          Estoque abaixo do mínimo
+        </option>
       </select>
     </div>
     <!-- TABLE WRAPPER -->
@@ -33,7 +40,10 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="a in alertas" :key="a.id" class="hover:bg-base-100 border-t transition">
+          <tr
+            v-for="a in alertas"
+            :key="a.id"
+            class="hover:bg-base-100 border-t transition">
             <!-- DADOS -->
             <td class="px-6 py-4">{{ a._produto?.nome || a.produtoId }}</td>
             <td class="px-6 py-4">
@@ -43,15 +53,19 @@
               <template v-else-if="a.motivo == MotivoAlerta.QuantidadeMinima">
                 Quant. Minima Antingida
               </template>
-              <template v-else-if="a.motivo == MotivoAlerta.Validade"> Validade </template>
+              <template v-else-if="a.motivo == MotivoAlerta.Validade">
+                Validade
+              </template>
               <template v-else> Não Identificado </template>
             </td>
             <td class="px-6 py-4">
               <template v-if="a.motivo == MotivoAlerta.QuantidadeMaxima">
-                A quantidade atual do produto está maior que a quantidade minima indicada.
+                A quantidade atual do produto está maior que a quantidade minima
+                indicada.
               </template>
               <template v-else-if="a.motivo == MotivoAlerta.QuantidadeMinima">
-                A quantidade atual do produto está menor que a quantidade minima indicada.
+                A quantidade atual do produto está menor que a quantidade minima
+                indicada.
               </template>
               <template v-else-if="a.motivo == MotivoAlerta.Validade">
                 O produto está perto da validade indicada.
@@ -63,15 +77,13 @@
               <div class="tooltip" data-tip="Ignorar alerta por 24 horas">
                 <button
                   @click="silenciar(a.id)"
-                  class="flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-gray-700 transition hover:bg-gray-200"
-                >
+                  class="flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-gray-700 transition hover:bg-gray-200">
                   <BellSlashIcon class="h-4 w-4" /> Ignorar
                 </button>
               </div>
               <button
                 class="flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-blue-800 transition hover:bg-blue-200"
-                @click="visualizarProduto(a.produtoId)"
-              >
+                @click="visualizarProduto(a.produtoId)">
                 <PencilSquareIcon class="h-4 w-4" /> Visualizar
               </button>
             </td>
@@ -83,60 +95,62 @@
 </template>
 
 <script setup lang="ts">
-import apiAlertas from '@/api/alertas'
-import { notificacoes } from '@/main'
+definePageMeta({});
+
+import apiAlertas from "@/api/alertas";
+import { notificacoes } from "@/main";
 import {
   ArrowPathIcon,
   BellSlashIcon,
   ExclamationTriangleIcon,
   PencilSquareIcon,
-} from '@heroicons/vue/24/outline'
-import { onMounted, ref, type Ref } from 'vue'
-import { useRouter } from 'vue-router'
+} from "@heroicons/vue/24/outline";
+import { onMounted, ref, type Ref } from "vue";
+import { useRouter } from "vue-router";
 import {
   MotivoAlerta,
   type GetConsultaAlertasDto,
   type ParamsConsultaAlertas,
-} from '../../../backend'
+} from "../../../backend";
 
-const filtroMotivo: Ref<MotivoAlerta | null> = ref(null)
-const alertas: Ref<GetConsultaAlertasDto[]> = ref([])
+const filtroMotivo: Ref<MotivoAlerta | null> = ref(null);
+const alertas: Ref<GetConsultaAlertasDto[]> = ref([]);
 
 async function obterAlertas() {
   const filtros = {
     pagina: 1,
     paginaTamanho: 100,
-  } as ParamsConsultaAlertas
+  } as ParamsConsultaAlertas;
   if (filtroMotivo.value) {
-    filtros.comMotivo = filtroMotivo.value
+    filtros.comMotivo = filtroMotivo.value;
   }
-  const res = await apiAlertas.consultar(filtros)
+  const res = await apiAlertas.consultar(filtros);
   if (res.ok && res.responseBody) {
-    alertas.value = res.responseBody
+    alertas.value = res.responseBody;
   }
 }
 
 async function silenciar(id: string) {
-  const res = await apiAlertas.silenciar(id)
+  const res = await apiAlertas.silenciar(id);
   if (res.ok) {
-    notificacoes.addNotification('Alerta silenciado temporariamente.')
-    obterAlertas()
+    notificacoes.addNotification("Alerta silenciado temporariamente.");
+    obterAlertas();
   }
 }
 
 async function verificarAlertas() {
-  const res = await apiAlertas.verificar()
+  const res = await apiAlertas.verificar();
   if (res.ok) {
-    notificacoes.addNotification('Alertas verificados.')
-    obterAlertas()
+    notificacoes.addNotification("Alertas verificados.");
+    obterAlertas();
   }
 }
 
-const router = useRouter()
+const router = useRouter();
 
 function visualizarProduto(produtoId: string) {
-  router.push({ name: 'CriarProdutoView', params: { id: produtoId } })
+  router.push({ name: "CriarProdutoView", params: { id: produtoId } });
 }
 
-onMounted(() => obterAlertas())
+onMounted(() => obterAlertas());
 </script>

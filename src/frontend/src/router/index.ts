@@ -105,43 +105,10 @@ const router = createRouter({
   ],
 })
 
-// TODO: Invalidar rotas em caso de erros 401
-router.beforeEach((to, _from, next: NavigationGuardNext) => {
-  // TODO: Realizar autenticação mais elegante
-  if (to.matched.some((record) => record.meta.requerAutenticacao)) {
-    if (sessao.isLoggedIn) {
-      next()
-    } else {
-      if (to.name) {
-        next({ name: 'loading', query: { nextPage: to.name.toString() } })
-      } else {
-        next({ name: 'loading' })
-      }
-    }
-  } else {
-    next()
-  }
-})
-
 router.beforeEach((to, _from, next: NavigationGuardNext) => {
   // TODO: Realizar autenticação mais elegante
   if (to.matched.some((record) => record.meta.requerPermissoes)) {
-    const permissoes = to.meta.requerPermissoes
-    // Permissoes[][] -> [Or][And]
-    let permitido = false
-    if (Array.isArray(permissoes) && permissoes.length !== 0) {
-      permitido = (permissoes as Permissoes[][]).reduce(
-        (okOr, permsAnd) =>
-          okOr ||
-          permsAnd.reduce((okAnd, needPerm) => okAnd && sessao.possuiPermissao(needPerm), true),
-        permitido,
-      )
-    }
-    if (permitido) {
-      next()
-    } else {
-      next({ name: 'operacoes' })
-    }
+
   } else {
     next()
   }
